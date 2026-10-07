@@ -398,3 +398,165 @@ Widget backButton(BuildContext context) => GlassIconButton(
       semanticLabel: 'Back',
       onPressed: () => Navigator.of(context).pop(),
     );
+
+/// Themed confirmation dialog: dark numbered tile, dot-matrix title,
+/// glass buttons. Used for sign out / delete.
+Future<void> showPocketConfirm(
+  BuildContext context, {
+  required String tag,
+  required String title,
+  required String message,
+  required String confirmLabel,
+  required IconData icon,
+  required Future<void> Function() onConfirm,
+  String cancelLabel = 'Cancel',
+}) {
+  return showGeneralDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: 'Dismiss',
+    barrierColor: const Color(0xB3000000),
+    transitionDuration: const Duration(milliseconds: 220),
+    transitionBuilder: (ctx, anim, _, child) {
+      final curved = CurvedAnimation(parent: anim, curve: Curves.easeOutCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.94, end: 1).animate(curved),
+          child: child,
+        ),
+      );
+    },
+    pageBuilder: (ctx, _, __) {
+      return SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 380),
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+                decoration: BoxDecoration(
+                  color: kTile,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: kLine),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kAccent.withValues(alpha: 0.18),
+                      blurRadius: 40,
+                      spreadRadius: -6,
+                    ),
+                    const BoxShadow(
+                      color: Color(0x99000000),
+                      blurRadius: 30,
+                      offset: Offset(0, 16),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(tag, style: mono(11, color: kMuted)),
+                        const SizedBox(width: 10),
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                              color: kAccent, shape: BoxShape.circle),
+                        ),
+                        const Spacer(),
+                        Icon(icon, color: kAccent, size: 20),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      title.toUpperCase(),
+                      style: dot(28, color: kInk)
+                          .copyWith(decoration: TextDecoration.none),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      message,
+                      style: mono(12, color: kMuted, spacing: 0.2).copyWith(
+                          height: 1.5, decoration: TextDecoration.none),
+                    ),
+                    const SizedBox(height: 22),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GlassAction(
+                            label: cancelLabel,
+                            primary: false,
+                            onTap: () => Navigator.of(ctx).pop(),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GlassAction(
+                            label: confirmLabel,
+                            onTap: () async {
+                              Navigator.of(ctx).pop();
+                              await onConfirm();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+/// Dark, opaque round button for app bars: high contrast on the warm
+/// gradient and consistent with the tiles.
+class BarButton extends StatelessWidget {
+  const BarButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    required this.label,
+    this.color = kInk,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: label,
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: kTile,
+            shape: BoxShape.circle,
+            border: Border.all(color: kLine),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x55000000),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+      ),
+    );
+  }
+}

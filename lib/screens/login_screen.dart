@@ -75,7 +75,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _verifyOtp() async {
     if (_code.text.trim().length < 6) {
-      showError(context, 'Enter the 6-digit code.');
+      showError(context, 'Enter the code from your email.');
       return;
     }
     await _run(() =>
@@ -150,10 +150,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ] else if (_otpSent) ...[
                   PocketField(
                     controller: _code,
-                    placeholder: '6-digit code',
+                    placeholder: 'Code from email',
                     icon: CupertinoIcons.number,
                     keyboardType: TextInputType.number,
-                    maxLength: 6,
+                    maxLength: 8,
                     onSubmitted: (_) => _verifyOtp(),
                   ),
                   const SizedBox(height: 18),

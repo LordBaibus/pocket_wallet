@@ -77,29 +77,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _confirmSignOut() async {
-    GlassDialog.show(
-      context: context,
+    await showPocketConfirm(
+      context,
+      tag: '05 SESSION',
       title: 'Sign out?',
-      message: 'You can sign back in anytime.',
-      actions: [
-        GlassDialogAction(
-          label: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        GlassDialogAction(
-          label: 'Sign out',
-          isDestructive: true,
-          onPressed: () async {
-            Navigator.of(context).pop();
-            try {
-              await AuthService.instance.signOut();
-              // AuthGate returns to Login by itself.
-            } catch (e) {
-              if (mounted) showError(context, e);
-            }
-          },
-        ),
-      ],
+      message: 'Your cards stay safe in your account. Sign back in anytime.',
+      confirmLabel: 'Sign out',
+      icon: CupertinoIcons.power,
+      onConfirm: () async {
+        try {
+          await AuthService.instance.signOut();
+          // AuthGate returns to Login by itself.
+        } catch (e) {
+          if (mounted) showError(context, e);
+        }
+      },
     );
   }
 
@@ -116,15 +108,16 @@ class _HomeScreenState extends State<HomeScreen> {
     return GlassScaffold(
       background: const PocketBackground(),
       appBar: GlassAppBar(
-        leading: GlassIconButton(
-          icon: const Icon(CupertinoIcons.square_arrow_right),
-          semanticLabel: 'Sign out',
+        leading: BarButton(
+          icon: CupertinoIcons.power,
+          label: 'Sign out',
+          color: kAccent,
           onPressed: _confirmSignOut,
         ),
         actions: [
-          GlassIconButton(
-            icon: const Icon(CupertinoIcons.add),
-            semanticLabel: 'Add card',
+          BarButton(
+            icon: CupertinoIcons.add,
+            label: 'Add card',
             onPressed: _openAdd,
           ),
         ],

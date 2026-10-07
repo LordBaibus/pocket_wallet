@@ -11,29 +11,22 @@ class CardDetailScreen extends StatelessWidget {
   final WalletCard card;
 
   void _confirmDelete(BuildContext context) {
-    GlassDialog.show(
-      context: context,
-      title: 'Delete "${card.label}"?',
-      message: 'This removes the card from all your devices.',
-      actions: [
-        GlassDialogAction(
-          label: 'Cancel',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        GlassDialogAction(
-          label: 'Delete',
-          isDestructive: true,
-          onPressed: () async {
-            Navigator.of(context).pop(); // close dialog
-            try {
-              await WalletService.instance.delete(card.id);
-              if (context.mounted) Navigator.of(context).pop(true);
-            } catch (e) {
-              if (context.mounted) showError(context, e);
-            }
-          },
-        ),
-      ],
+    showPocketConfirm(
+      context,
+      tag: 'CARD',
+      title: 'Delete card?',
+      message:
+          '"${card.label}" will be removed from all your devices. This cannot be undone.',
+      confirmLabel: 'Delete',
+      icon: CupertinoIcons.delete,
+      onConfirm: () async {
+        try {
+          await WalletService.instance.delete(card.id);
+          if (context.mounted) Navigator.of(context).pop(true);
+        } catch (e) {
+          if (context.mounted) showError(context, e);
+        }
+      },
     );
   }
 

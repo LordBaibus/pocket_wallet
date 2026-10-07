@@ -7,9 +7,9 @@
 /// Use the publishable key (sb_publishable_...), never the secret key.
 const supabaseUrl = String.fromEnvironment(
   'SUPABASE_URL',
-  defaultValue: 'https://YOUR-PROJECT-REF.supabase.co',
+  defaultValue: 'https://wukazkhhqvpmbakhnmrz.supabase.co',
 );
 const supabasePublishableKey = String.fromEnvironment(
   'SUPABASE_PUBLISHABLE_KEY',
-  defaultValue: 'sb_publishable_YOUR-KEY',
+  defaultValue: 'sb_publishable_IZo4cg24GAMg8f-PKTRPmw_dMDzWaym',
 );

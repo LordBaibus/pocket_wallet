@@ -47,6 +47,15 @@ class AuthService {
     await _auth.verifyOTP(email: email, token: code, type: OtpType.email);
   }
 
+  /// Confirms a new account with the 6-digit code from the signup email.
+  Future<void> verifySignupCode(String email, String code) async {
+    await _auth.verifyOTP(email: email, token: code, type: OtpType.signup);
+  }
+
+  Future<void> resendSignupCode(String email) async {
+    await _auth.resend(type: OtpType.signup, email: email);
+  }
+
   Future<void> resetPassword(String email) async {
     await _auth.resetPasswordForEmail(email);
   }
@@ -109,6 +118,13 @@ class AuthService {
     if (e is SignInWithAppleAuthorizationException &&
         e.code == AuthorizationErrorCode.canceled) {
       return 'Sign in was cancelled.';
+    }
+    if (e is SignInWithAppleNotSupportedException) {
+      return 'Sign in with Apple is not available on this device.';
+    }
+    if (e is SignInWithAppleAuthorizationException) {
+      return 'Apple sign-in failed (${e.code.name}). A free Apple developer '
+          'account cannot use Sign in with Apple; it needs the paid program.';
     }
     if (e is PostgrestException) return e.message;
     return e.toString();

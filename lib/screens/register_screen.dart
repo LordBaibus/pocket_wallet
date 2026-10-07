@@ -4,6 +4,7 @@ import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import '../services/auth_service.dart';
 import '../widgets/common.dart';
 import '../widgets/dots.dart';
+import 'verify_email_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -54,8 +55,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Session exists: AuthGate shows Home; drop this pushed screen.
         Navigator.of(context).popUntil((r) => r.isFirst);
       } else {
-        showOk(context, 'Account created. Confirm your email, then sign in.');
-        Navigator.of(context).pop();
+        // Email confirmation is on: ask for the 6-digit code from the email.
+        Navigator.of(context).pushReplacement(CupertinoPageRoute(
+          builder: (_) => VerifyEmailScreen(email: email),
+        ));
       }
     } catch (e) {
       if (mounted) showError(context, e);
