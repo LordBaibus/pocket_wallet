@@ -1,0 +1,48 @@
+# Codemagic workflow for Pocket Wallet: builds an UNSIGNED .ipa (no Apple
+# Developer account or certificates needed on Codemagic).
+#
+# Setup in Codemagic:
+#  1. Add the repo and choose "codemagic.yaml" as the configuration.
+#  2. Environment variables > create a group named "supabase" with:
+#       SUPABASE_URL                 e.g. https://abcd1234.supabase.co
+#       SUPABASE_PUBLISHABLE_KEY     sb_publishable_...
+#  3. Start the "ios-unsigned-ipa" workflow and download the .ipa artifact.
+#
+# Install the .ipa on your iPhone with a sideloading tool that signs it with
+# your free Apple ID (Sideloadly, AltStore, or Xcode on a Mac). Free-signed apps
+# expire after 7 days and must be re-signed.
+
+workflows:
+  ios-unsigned-ipa:
+    name: iOS unsigned IPA
+    instance_type: mac_mini_m2
+    max_build_duration: 30
+    environment:
+      groups:
+        - supabase
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install
+      - name: Build iOS app (no codesign)
+        script: |
+          flutter build ios --release --no-codesign \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
+      - name: Package unsigned .ipa
+        script: |
+          set -e
+          mkdir -p build/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ipa/Payload/Runner.app
+          cd build/ipa
+          zip -qry PocketWallet-unsigned.ipa Payload
+          rm -rf Payload
+          ls -lh PocketWallet-unsigned.ipa
+    artifacts:
+      - build/ipa/PocketWallet-unsigned.ipa
