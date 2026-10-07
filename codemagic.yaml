@@ -26,10 +26,29 @@ workflows:
     scripts:
       - name: Get Flutter packages
         script: flutter pub get
+      - name: Prepare iOS (Podfile + deployment target)
+        script: |
+          set -e
+          FLUTTER_ROOT=$(dirname $(dirname $(which flutter)))
+          # Read the minimum iOS version the installed Flutter engine requires.
+          MIN=$(grep -o "deployment_target *= *'[0-9.]*'" \
+            "$FLUTTER_ROOT/bin/cache/artifacts/engine/ios/Flutter.podspec" \
+            | grep -o "[0-9][0-9.]*" | head -1)
+          MIN=${MIN:-15.0}
+          echo "Using iOS deployment target $MIN"
+          # Generates ios/Podfile if the repo does not have one.
+          flutter build ios --config-only --release --no-codesign || true
+          cd ios
+          if [ -f Podfile ]; then
+            sed -i '' -E "s/^#? *platform :ios, .*/platform :ios, '$MIN'/" Podfile
+            grep -n "platform :ios" Podfile
+          fi
+          sed -i '' -E "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = $MIN;/g" Runner.xcodeproj/project.pbxproj
+          sed -i '' -E "/MinimumOSVersion/{n;s/<string>[0-9.]+<\/string>/<string>$MIN<\/string>/;}" Flutter/AppFrameworkInfo.plist || true
       - name: Install CocoaPods
         script: |
           cd ios
-          pod install
+          pod install --repo-update
       - name: Build iOS app (no codesign)
         script: |
           flutter build ios --release --no-codesign \
