@@ -9,7 +9,5 @@ const _envKey = String.fromEnvironment(
   defaultValue: '',
 );
 
-// Codemagic passes empty --dart-define values when its variable group is not
-// set up; an empty string would override the defaults above, so fall back.
 const supabaseUrl = _envUrl == '' ? _defaultUrl : _envUrl;
 const supabasePublishableKey = _envKey == '' ? _defaultKey : _envKey;
