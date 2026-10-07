@@ -284,9 +284,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _passTile(Profile p) {
     final name = p.displayName;
     final short = p.id.length >= 8 ? p.id.substring(0, 8) : p.id;
-    final sub = [p.jobTitle, p.organization]
-        .where((e) => e.trim().isNotEmpty)
-        .join(' · ');
+    final sub = [
+      if (p.show('jobTitle')) p.jobTitle,
+      if (p.show('organization')) p.organization,
+    ].where((e) => e.trim().isNotEmpty).join(' · ');
     Widget info(String label, String value) => value.trim().isEmpty
         ? const SizedBox.shrink()
         : Padding(
@@ -345,9 +346,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          info('MOBILE', p.mobile.isEmpty ? '— add in Edit profile' : p.mobile),
-          info('EMAIL', p.email),
-          info('CITY', p.city),
+          if (p.show('mobile'))
+            info('MOBILE',
+                p.mobile.isEmpty ? '— add in Edit profile' : p.mobile),
+          if (p.show('email')) info('EMAIL', p.email),
+          if (p.show('address')) info('ADDRESS', p.address),
+          if (p.show('city')) info('CITY', p.city),
           const SizedBox(height: 18),
           Center(
             child: Container(

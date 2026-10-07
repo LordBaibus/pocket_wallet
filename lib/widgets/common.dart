@@ -230,9 +230,9 @@ class GlassAction extends StatelessWidget {
       shape: const LiquidRoundedRectangle(borderRadius: 18),
       useOwnLayer: true,
       settings: LiquidGlassSettings(
-        glassColor: primary ? const Color(0x66FF4A1C) : const Color(0x0FFFFFFF),
-        thickness: 22,
-        blur: 3,
+        glassColor: primary ? const Color(0x66FF4A1C) : const Color(0x08FFFFFF),
+        thickness: 14,
+        blur: 0,
       ),
       glowColor: kAccent.withValues(alpha: 0.5),
       enabled: onTap != null && !busy,
@@ -262,9 +262,9 @@ class GlassAction extends StatelessWidget {
 /// Clear glass for inputs: barely tinted and lightly blurred so the dark tile
 /// shows through instead of reading as grey frosted plastic.
 const kClearGlass = LiquidGlassSettings(
-  glassColor: Color(0x0FFFFFFF),
-  thickness: 22,
-  blur: 2,
+  glassColor: Color(0x08FFFFFF),
+  thickness: 12,
+  blur: 0,
 );
 
 class PocketField extends StatelessWidget {

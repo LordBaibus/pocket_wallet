@@ -1,6 +1,16 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// The member's profile, stored in Supabase auth user metadata.
+/// Fields the member can choose to show (name is always shown).
+const allShareable = {
+  'mobile',
+  'email',
+  'organization',
+  'jobTitle',
+  'city',
+  'address',
+};
+
 class Profile {
   const Profile({
     required this.id,
@@ -10,6 +20,8 @@ class Profile {
     this.organization = '',
     this.jobTitle = '',
     this.city = '',
+    this.address = '',
+    this.shown = allShareable,
   });
 
   final String id;
@@ -19,6 +31,10 @@ class Profile {
   final String organization;
   final String jobTitle;
   final String city;
+  final String address;
+  final Set<String> shown;
+
+  bool show(String key) => shown.contains(key);
 
   factory Profile.fromUser(User? u) {
     final m = u?.userMetadata ?? const <String, dynamic>{};
@@ -31,6 +47,10 @@ class Profile {
       organization: s('organization'),
       jobTitle: s('job_title'),
       city: s('city'),
+      address: s('address'),
+      shown: m['shown'] is List
+          ? (m['shown'] as List).map((e) => e.toString()).toSet()
+          : allShareable,
     );
   }
 
@@ -42,11 +62,13 @@ class Profile {
         'organization': organization,
         'job_title': jobTitle,
         'city': city,
+        'address': address,
+        'shown': shown.toList(),
       };
 
   /// Share of optional profile fields that are filled in (0..1).
   double get completeness {
-    final f = [fullName, mobile, organization, jobTitle, city];
+    final f = [fullName, mobile, organization, jobTitle, city, address];
     return f.where((e) => e.trim().isNotEmpty).length / f.length;
   }
 
@@ -59,11 +81,12 @@ class Profile {
     }
 
     add('Name', fullName);
-    add('Mobile', mobile);
-    add('Email', email);
-    add('Organization', organization);
-    add('Title', jobTitle);
-    add('City', city);
+    if (show('mobile')) add('Mobile', mobile);
+    if (show('email')) add('Email', email);
+    if (show('organization')) add('Organization', organization);
+    if (show('jobTitle')) add('Title', jobTitle);
+    if (show('address')) add('Address', address);
+    if (show('city')) add('City', city);
     add('Member ID', id.length >= 8 ? id.substring(0, 8).toUpperCase() : id);
     return lines.join('\n');
   }
