@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../widgets/common.dart';
 import '../widgets/dots.dart';
 
+/// Password reset with an emailed code: email -> code + new password.
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key, this.email = ''});
   final String email;
@@ -15,12 +16,18 @@ class ForgotPasswordScreen extends StatefulWidget {
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   late final _email = TextEditingController(text: widget.email);
+  final _code = TextEditingController();
+  final _password = TextEditingController();
+  final _confirm = TextEditingController();
   bool _busy = false;
   bool _sent = false;
 
   @override
   void dispose() {
     _email.dispose();
+    _code.dispose();
+    _password.dispose();
+    _confirm.dispose();
     super.dispose();
   }
 
@@ -34,7 +41,42 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     setState(() => _busy = true);
     try {
       await AuthService.instance.resetPassword(email);
-      if (mounted) setState(() => _sent = true);
+      if (mounted) {
+        setState(() => _sent = true);
+        showOk(context, 'Code sent. Check your inbox.');
+      }
+    } catch (e) {
+      if (mounted) showError(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _reset() async {
+    final code = _code.text.trim();
+    if (code.length < 6) {
+      showError(context, 'Enter the code from your email.');
+      return;
+    }
+    if (_password.text.length < 6) {
+      showError(context, 'Password must be at least 6 characters.');
+      return;
+    }
+    if (_password.text != _confirm.text) {
+      showError(context, 'Passwords do not match.');
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    setState(() => _busy = true);
+    try {
+      await AuthService.instance.confirmPasswordReset(
+        email: _email.text.trim(),
+        code: code,
+        newPassword: _password.text,
+      );
+      if (!mounted) return;
+      // The code signs the user in; AuthGate shows Home behind this screen.
+      Navigator.of(context).popUntil((r) => r.isFirst);
     } catch (e) {
       if (mounted) showError(context, e);
     } finally {
@@ -52,8 +94,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         children: [
           PocketHeader(
             title: 'Reset access',
-            subtitle: "We'll email you a reset link",
-            status: _sent ? 'Link sent' : 'Awaiting email',
+            subtitle: "We'll email you a code",
+            status: _sent ? 'Code sent' : 'Awaiting email',
           ),
           Tile(
             index: '01',
@@ -73,7 +115,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
                 const SizedBox(height: 18),
                 GlassAction(
-                    label: 'Send reset link', busy: _busy, onTap: _send),
+                  label: _sent ? 'Resend code' : 'Send code',
+                  primary: !_sent,
+                  busy: _busy && !_sent,
+                  onTap: _busy ? null : _send,
+                ),
               ],
             ),
           ),
@@ -81,14 +127,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             const SizedBox(height: 16),
             Tile(
               index: '02',
-              title: 'Status',
+              title: 'New password',
               trailing: const StatusChip('Sent'),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('CHECK INBOX', style: dot(26)),
-                  const SizedBox(height: 6),
-                  Text(_email.text.trim(), style: mono(12, color: kMuted)),
+                  PocketField(
+                    controller: _code,
+                    placeholder: 'Code from email',
+                    icon: CupertinoIcons.number,
+                    keyboardType: TextInputType.number,
+                    textInputAction: TextInputAction.next,
+                    maxLength: 8,
+                  ),
+                  const SizedBox(height: 12),
+                  PocketPasswordField(
+                    controller: _password,
+                    placeholder: 'New password',
+                  ),
+                  const SizedBox(height: 12),
+                  PocketPasswordField(
+                    controller: _confirm,
+                    placeholder: 'Confirm new password',
+                    onSubmitted: (_) => _reset(),
+                  ),
+                  const SizedBox(height: 18),
+                  GlassAction(
+                    label: 'Reset password',
+                    busy: _busy,
+                    onTap: _reset,
+                  ),
                 ],
               ),
             ),

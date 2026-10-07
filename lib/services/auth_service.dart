@@ -64,8 +64,21 @@ class AuthService {
     await _auth.resend(type: OtpType.signup, email: email);
   }
 
+  /// Step 1 of password reset: emails a code (Supabase "Reset Password"
+  /// template must contain {{ .Token }}).
   Future<void> resetPassword(String email) async {
     await _auth.resetPasswordForEmail(email);
+  }
+
+  /// Step 2: verifies the emailed code (this signs the user in), then sets
+  /// the new password.
+  Future<void> confirmPasswordReset({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    await _auth.verifyOTP(email: email, token: code, type: OtpType.recovery);
+    await _auth.updateUser(UserAttributes(password: newPassword));
   }
 
   /// Native Sign in with Apple -> Supabase session.
