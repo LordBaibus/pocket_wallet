@@ -18,8 +18,6 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 30
     environment:
-      groups:
-        - supabase
       flutter: stable
       xcode: latest
       cocoapods: default
@@ -51,9 +49,7 @@ workflows:
           pod install --repo-update
       - name: Build iOS app (no codesign)
         script: |
-          flutter build ios --release --no-codesign \
-            --dart-define=SUPABASE_URL=$SUPABASE_URL \
-            --dart-define=SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY
+          flutter build ios --release --no-codesign
       - name: Package unsigned .ipa
         script: |
           set -e
