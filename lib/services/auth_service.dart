@@ -39,7 +39,7 @@ class AuthService {
 
   /// Step 1 of OTP login: emails a 6-digit code.
   Future<void> sendOtp(String email) async {
-    await _auth.signInWithOtp(email: email, shouldCreateUser: true);
+    await _auth.signInWithOtp(email: email, shouldCreateUser: false);
   }
 
   /// Step 2 of OTP login: verifies the code and signs the user in.

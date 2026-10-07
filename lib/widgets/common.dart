@@ -516,8 +516,8 @@ Future<void> showPocketConfirm(
   );
 }
 
-/// Dark, opaque round button for app bars: high contrast on the warm
-/// gradient and consistent with the tiles.
+/// Dark-tinted liquid glass round button for app bars. The heavy dark tint
+/// keeps the icon readable on the warm gradient while staying real glass.
 class BarButton extends StatelessWidget {
   const BarButton({
     super.key,
@@ -537,25 +537,19 @@ class BarButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
-      child: GestureDetector(
-        onTap: onPressed,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: kTile,
-            shape: BoxShape.circle,
-            border: Border.all(color: kLine),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x55000000),
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: color, size: 20),
+      child: GlassButton.custom(
+        width: 44,
+        height: 44,
+        shape: const LiquidRoundedRectangle(borderRadius: 22),
+        useOwnLayer: true,
+        settings: const LiquidGlassSettings(
+          glassColor: Color(0xE6101012),
+          thickness: 18,
+          blur: 10,
         ),
+        glowColor: kAccent.withValues(alpha: 0.4),
+        onTap: onPressed,
+        child: Center(child: Icon(icon, color: color, size: 20)),
       ),
     );
   }
