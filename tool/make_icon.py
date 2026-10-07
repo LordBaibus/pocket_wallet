@@ -5,12 +5,16 @@ from PIL import Image, ImageDraw, ImageFilter
 S = 2048  # supersampled canvas, downscaled to 1024
 
 def gradient():
-    top, mid, bot = (43, 75, 60), (35, 64, 47), (20, 38, 29)
+    stops = [(0.0, (226, 165, 110)), (0.32, (138, 91, 63)), (0.7, (58, 44, 37)), (1.0, (28, 24, 22))]
     img = Image.new("RGB", (S, S))
     px = img.load()
     for y in range(S):
         t = y / (S - 1)
-        a, b, k = (top, mid, t * 2) if t < 0.5 else (mid, bot, (t - 0.5) * 2)
+        for i in range(len(stops) - 1):
+            if stops[i][0] <= t <= stops[i + 1][0]:
+                a, b = stops[i][1], stops[i + 1][1]
+                k = (t - stops[i][0]) / (stops[i + 1][0] - stops[i][0])
+                break
         c = tuple(int(a[i] + (b[i] - a[i]) * k) for i in range(3))
         for x in range(S):
             px[x, y] = c
@@ -25,7 +29,7 @@ def build():
     img.paste(sh, (0, 0), sh)
     d = ImageDraw.Draw(img)
     # dark card
-    d.rounded_rectangle((220, 400, 1828, 1560), 190, fill=(26, 44, 35))
+    d.rounded_rectangle((220, 400, 1828, 1560), 190, fill=(22, 22, 24))
     d.rounded_rectangle((220, 400, 1828, 1560), 190, outline=(60, 60, 66), width=6)
     # dot-matrix "P"
     P = ["1111.",

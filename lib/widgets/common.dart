@@ -24,11 +24,12 @@ class PocketBackground extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            stops: [0.0, 0.45, 1.0],
+            stops: [0.0, 0.32, 0.7, 1.0],
             colors: [
-              Color(0xFF2B4B3C), // forest
-              Color(0xFF23402F), // deep sage
-              Color(0xFF14261D), // near-black green
+              Color(0xFFE2A56E),
+              Color(0xFF8A5B3F),
+              Color(0xFF3A2C25),
+              Color(0xFF1C1816),
             ],
           ),
         ),
