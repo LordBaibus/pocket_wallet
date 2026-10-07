@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Padding(
                   padding: const EdgeInsets.only(left: 4, bottom: 14),
                   child: Text('MY CARDS',
-                      style: mono(13, color: const Color(0xCCFFF3E8), spacing: 1.6)),
+                      style: mono(13, color: kOnBg, spacing: 1.6)),
                 ),
                 if (_loading)
                   const Padding(

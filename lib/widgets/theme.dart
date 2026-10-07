@@ -6,6 +6,9 @@ const kTile = Color(0xFF161618);
 const kTileHi = Color(0xFF212125);
 const kInk = Color(0xFFF4F1EE);
 const kMuted = Color(0xFF8C8C94);
+/// Text colour for content drawn directly on the pastel background.
+const kOnBg = Color(0xFF2B2140);
+const kOnBgSoft = Color(0xB32B2140);
 const kLine = Color(0x1AFFFFFF);
 
 /// Dot-matrix display face (falls back to a mono face if unavailable).

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 
 import '../services/auth_service.dart';
@@ -12,21 +13,27 @@ class PocketBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          stops: [0.0, 0.32, 0.7, 1.0],
-          colors: [
-            Color(0xFFE2A56E),
-            Color(0xFF8A5B3F),
-            Color(0xFF3A2C25),
-            Color(0xFF1C1816),
-          ],
-        ),
+    return const AnnotatedRegion<SystemUiOverlayStyle>(
+      // Light pastel background: dark status bar icons.
+      value: SystemUiOverlayStyle(
+        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.dark,
       ),
-      child: SizedBox.expand(),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            stops: [0.0, 0.5, 1.0],
+            colors: [
+              Color(0xFFFFD3E4), // pastel pink
+              Color(0xFFE2D6FF), // pastel lavender
+              Color(0xFFC9E4FF), // pastel sky
+            ],
+          ),
+        ),
+        child: SizedBox.expand(),
+      ),
     );
   }
 }
@@ -53,12 +60,12 @@ class PocketHeader extends StatelessWidget {
         children: [
           Text(
             title.toUpperCase(),
-            style: dot(34, color: const Color(0xFFFFF3E8), spacing: 2),
+            style: dot(34, color: kOnBg, spacing: 2),
           ),
           const SizedBox(height: 4),
           Text(
             subtitle.toUpperCase(),
-            style: mono(13, color: const Color(0xCCFFF3E8), spacing: 1.4),
+            style: mono(13, color: kOnBgSoft, spacing: 1.4),
           ),
           if (status != null) ...[
             const SizedBox(height: 12),
@@ -75,7 +82,7 @@ class PocketHeader extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   status!,
-                  style: mono(12, color: const Color(0xCCFFF3E8), spacing: 0.4),
+                  style: mono(12, color: kOnBgSoft, spacing: 0.4),
                 ),
               ],
             ),
@@ -222,9 +229,9 @@ class GlassAction extends StatelessWidget {
       shape: const LiquidRoundedRectangle(borderRadius: 18),
       useOwnLayer: true,
       settings: LiquidGlassSettings(
-        glassColor: primary ? const Color(0x55FF4A1C) : const Color(0x22FFFFFF),
-        thickness: 18,
-        blur: 8,
+        glassColor: primary ? const Color(0x66FF4A1C) : const Color(0x0FFFFFFF),
+        thickness: 22,
+        blur: 3,
       ),
       glowColor: kAccent.withValues(alpha: 0.5),
       enabled: onTap != null && !busy,
@@ -250,6 +257,14 @@ class GlassAction extends StatelessWidget {
     );
   }
 }
+
+/// Clear glass for inputs: barely tinted and lightly blurred so the dark tile
+/// shows through instead of reading as grey frosted plastic.
+const kClearGlass = LiquidGlassSettings(
+  glassColor: Color(0x0FFFFFFF),
+  thickness: 22,
+  blur: 2,
+);
 
 class PocketField extends StatelessWidget {
   const PocketField({
@@ -277,6 +292,9 @@ class PocketField extends StatelessWidget {
       controller: controller,
       placeholder: placeholder,
       useOwnLayer: true,
+      settings: kClearGlass,
+      quality: GlassQuality.premium,
+      glowColor: kAccent.withValues(alpha: 0.35),
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       onSubmitted: onSubmitted,
@@ -307,6 +325,9 @@ class PocketPasswordField extends StatelessWidget {
       controller: controller,
       placeholder: placeholder,
       useOwnLayer: true,
+      settings: kClearGlass,
+      quality: GlassQuality.premium,
+      glowColor: kAccent.withValues(alpha: 0.35),
       onSubmitted: onSubmitted,
       shape: const LiquidRoundedRectangle(borderRadius: 16),
       textStyle: mono(14, color: kInk, spacing: 0.2),
@@ -352,7 +373,7 @@ class Tagline extends StatelessWidget {
         children: [
           Text(
             text.toUpperCase(),
-            style: mono(13, color: const Color(0xAAFFF3E8), spacing: 1.6),
+            style: mono(13, color: kOnBgSoft, spacing: 1.6),
           ),
           Text(' _', style: mono(13, color: kAccent, spacing: 1.6)),
         ],
