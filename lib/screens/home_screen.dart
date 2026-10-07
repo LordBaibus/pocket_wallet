@@ -1,13 +1,16 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:liquid_glass_widgets/liquid_glass_widgets.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../services/auth_service.dart';
+import '../services/profile.dart';
 import '../services/wallet_service.dart';
 import '../widgets/common.dart';
 import '../widgets/dots.dart';
 import 'add_card_screen.dart';
 import 'card_detail_screen.dart';
+import 'edit_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,11 +22,35 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<WalletCard> _cards = [];
   bool _loading = true;
+  final _search = TextEditingController();
+  String _query = '';
 
   @override
   void initState() {
     super.initState();
     _load();
+    _search.addListener(() => setState(() => _query = _search.text.trim()));
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _editProfile(Profile p) async {
+    final saved = await Navigator.of(context).push<bool>(
+      CupertinoPageRoute(builder: (_) => EditProfileScreen(profile: p)),
+    );
+    if (saved == true && mounted) {
+      setState(() {});
+      showOk(context, 'Profile updated');
+    }
+  }
+
+  Future<void> _copyInfo(Profile p) async {
+    await Clipboard.setData(ClipboardData(text: p.qrText));
+    if (mounted) showOk(context, 'Your info was copied');
   }
 
   Future<void> _load() async {
@@ -98,9 +125,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = AuthService.instance.currentUser;
-    final meta = user?.userMetadata ?? const {};
-    final name = (meta['full_name'] ?? meta['name'] ?? 'Member').toString();
-    final email = user?.email ?? '';
+    final profile = Profile.fromUser(user);
+    final shown = _query.isEmpty
+        ? _cards
+        : _cards
+            .where((c) =>
+                c.label.toLowerCase().contains(_query.toLowerCase()) ||
+                c.number.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
     final provider =
         (user?.appMetadata['provider'] ?? 'email').toString().toUpperCase();
     final lastIn = (user?.lastSignInAt ?? '').split('T').first;
@@ -139,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : 'Synced · ${_cards.length} '
                           '${_cards.length == 1 ? 'card' : 'cards'}',
                 ),
-                _passTile(name, email, user?.id ?? ''),
+                _passTile(profile),
                 const SizedBox(height: 16),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,12 +217,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 Tile(
                   index: '04',
-                  title: 'Developer',
-                  child: GlassAction(
-                    label: 'Print current user',
-                    icon: CupertinoIcons.person_crop_circle,
-                    primary: false,
-                    onTap: _printUser,
+                  title: 'Actions',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      GlassAction(
+                        label: 'Edit profile',
+                        icon: CupertinoIcons.pencil,
+                        onTap: () => _editProfile(profile),
+                      ),
+                      const SizedBox(height: 10),
+                      GlassAction(
+                        label: 'Copy my info',
+                        icon: CupertinoIcons.doc_on_clipboard,
+                        primary: false,
+                        onTap: () => _copyInfo(profile),
+                      ),
+                      const SizedBox(height: 10),
+                      GlassAction(
+                        label: 'Print current user',
+                        icon: CupertinoIcons.person_crop_circle,
+                        primary: false,
+                        onTap: _printUser,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 28),
@@ -206,9 +256,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 else if (_cards.isEmpty)
                   _emptyState()
-                else
-                  for (var i = 0; i < _cards.length; i++)
-                    _cardTile(i + 1, _cards[i]),
+                else ...[
+                  PocketField(
+                    controller: _search,
+                    placeholder: 'Search cards',
+                    icon: CupertinoIcons.search,
+                  ),
+                  const SizedBox(height: 14),
+                  if (shown.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text('No cards match "$_query".',
+                          style: mono(12, color: kOnBg)),
+                    ),
+                  for (var i = 0; i < shown.length; i++)
+                    _cardTile(i + 1, shown[i]),
+                ],
                 const Tagline('Your cards. One pocket.'),
               ]),
             ),
@@ -218,12 +281,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _passTile(String name, String email, String userId) {
-    final short = userId.length >= 8 ? userId.substring(0, 8) : userId;
+  Widget _passTile(Profile p) {
+    final name = p.displayName;
+    final short = p.id.length >= 8 ? p.id.substring(0, 8) : p.id;
+    final sub = [p.jobTitle, p.organization]
+        .where((e) => e.trim().isNotEmpty)
+        .join(' · ');
+    Widget info(String label, String value) => value.trim().isEmpty
+        ? const SizedBox.shrink()
+        : Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                    width: 64,
+                    child: Text(label, style: mono(10, color: kMuted))),
+                Expanded(
+                  child: Text(value,
+                      style: mono(12, color: kInk, spacing: 0.3)),
+                ),
+              ],
+            ),
+          );
     return Tile(
       index: '01',
       title: 'Pocket pass',
-      trailing: const StatusChip('Active'),
+      trailing: StatusChip('${(p.completeness * 100).round()}% complete'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -239,13 +323,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: dot(26),
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: mono(12, color: kMuted, spacing: 0.2),
-                    ),
+                    if (sub.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text(sub,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: mono(12, color: kMuted, spacing: 0.2)),
+                    ],
                   ],
                 ),
               ),
@@ -260,7 +344,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
+          info('MOBILE', p.mobile.isEmpty ? '— add in Edit profile' : p.mobile),
+          info('EMAIL', p.email),
+          info('CITY', p.city),
+          const SizedBox(height: 18),
           Center(
             child: Container(
               padding: const EdgeInsets.all(14),
@@ -269,8 +357,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(18),
               ),
               child: QrImageView(
-                data: userId.isEmpty ? 'unknown' : userId,
-                size: 176,
+                data: p.qrText,
+                size: 200,
+                errorCorrectionLevel: QrErrorCorrectLevel.L,
                 backgroundColor: const Color(0xFFF4F1EE),
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.square,
@@ -290,6 +379,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(width: 8),
               Text(short.toUpperCase(), style: mono(12, color: kInk)),
               const Spacer(),
+              Text('SCAN TO VIEW ALL INFO', style: mono(9, color: kMuted)),
+              const SizedBox(width: 6),
               const Icon(CupertinoIcons.lock_fill, size: 14, color: kMuted),
             ],
           ),
@@ -324,11 +415,14 @@ class _HomeScreenState extends State<HomeScreen> {
         index: (n + 4).toString().padLeft(2, '0'),
         title: 'Card',
         onTap: () => _openCard(c),
-        trailing: Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
+        trailing: c.isFavorite
+            ? const Icon(CupertinoIcons.star_fill, size: 14, color: kAccent)
+            : Container(
+                width: 8,
+                height: 8,
+                decoration:
+                    BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
         child: Row(
           children: [
             Container(

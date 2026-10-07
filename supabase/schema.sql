@@ -24,3 +24,8 @@ create policy "cards_update_own" on public.cards
 
 create policy "cards_delete_own" on public.cards
   for delete to authenticated using (user_id = auth.uid());
+
+-- Notes + favorites (added later; safe to re-run)
+alter table public.cards add column if not exists notes text not null default '';
+alter table public.cards add column if not exists is_favorite boolean not null default false;
+notify pgrst, 'reload schema';

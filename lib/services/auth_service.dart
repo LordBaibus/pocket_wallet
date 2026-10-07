@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'profile.dart';
+
 /// Thin wrapper around Supabase Auth. Every method throws on failure;
 /// screens catch and show the message.
 class AuthService {
@@ -24,13 +26,19 @@ class AuthService {
     required String email,
     required String password,
     required String fullName,
+    String mobile = '',
   }) async {
     final res = await _auth.signUp(
       email: email,
       password: password,
-      data: {'full_name': fullName},
+      data: {'full_name': fullName, 'mobile': mobile},
     );
     return res.session != null;
+  }
+
+  /// Saves the profile into the user's metadata.
+  Future<void> updateProfile(Profile p) async {
+    await _auth.updateUser(UserAttributes(data: p.toMeta()));
   }
 
   Future<void> signInWithPassword(String email, String password) async {

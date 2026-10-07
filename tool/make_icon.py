@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFilter
 S = 2048  # supersampled canvas, downscaled to 1024
 
 def gradient():
-    top, mid, bot = (255, 211, 228), (226, 214, 255), (201, 228, 255)
+    top, mid, bot = (43, 75, 60), (35, 64, 47), (20, 38, 29)
     img = Image.new("RGB", (S, S))
     px = img.load()
     for y in range(S):
@@ -25,7 +25,7 @@ def build():
     img.paste(sh, (0, 0), sh)
     d = ImageDraw.Draw(img)
     # dark card
-    d.rounded_rectangle((220, 400, 1828, 1560), 190, fill=(22, 22, 24))
+    d.rounded_rectangle((220, 400, 1828, 1560), 190, fill=(26, 44, 35))
     d.rounded_rectangle((220, 400, 1828, 1560), 190, outline=(60, 60, 66), width=6)
     # dot-matrix "P"
     P = ["1111.",

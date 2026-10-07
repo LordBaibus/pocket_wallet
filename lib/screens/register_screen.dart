@@ -16,6 +16,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final _name = TextEditingController();
   final _email = TextEditingController();
+  final _mobile = TextEditingController();
   final _password = TextEditingController();
   final _confirm = TextEditingController();
   bool _busy = false;
@@ -24,6 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     _name.dispose();
     _email.dispose();
+    _mobile.dispose();
     _password.dispose();
     _confirm.dispose();
     super.dispose();
@@ -32,8 +34,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     final name = _name.text.trim();
     final email = _email.text.trim();
-    if (name.isEmpty || email.isEmpty) {
-      showError(context, 'Please fill in your name and email.');
+    final mobile = _mobile.text.trim();
+    if (name.isEmpty || email.isEmpty || mobile.isEmpty) {
+      showError(context, 'Please fill in your name, email and mobile number.');
       return;
     }
     if (_password.text.length < 6) {
@@ -49,7 +52,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _busy = true);
     try {
       final signedIn = await AuthService.instance
-          .signUp(email: email, password: _password.text, fullName: name);
+          .signUp(
+          email: email,
+          password: _password.text,
+          fullName: name,
+          mobile: mobile);
       if (!mounted) return;
       if (signedIn) {
         // Session exists: AuthGate shows Home; drop this pushed screen.
@@ -100,6 +107,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   placeholder: 'Email',
                   icon: CupertinoIcons.mail,
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 12),
+                PocketField(
+                  controller: _mobile,
+                  placeholder: 'Mobile number',
+                  icon: CupertinoIcons.phone,
+                  keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
                 ),
               ],

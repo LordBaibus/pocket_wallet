@@ -14,21 +14,21 @@ class PocketBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const AnnotatedRegion<SystemUiOverlayStyle>(
-      // Light pastel background: dark status bar icons.
+      // Dark background: light status bar icons.
       value: SystemUiOverlayStyle(
-        statusBarBrightness: Brightness.light,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            stops: [0.0, 0.5, 1.0],
+            stops: [0.0, 0.45, 1.0],
             colors: [
-              Color(0xFFFFD3E4), // pastel pink
-              Color(0xFFE2D6FF), // pastel lavender
-              Color(0xFFC9E4FF), // pastel sky
+              Color(0xFF2B4B3C), // forest
+              Color(0xFF23402F), // deep sage
+              Color(0xFF14261D), // near-black green
             ],
           ),
         ),
